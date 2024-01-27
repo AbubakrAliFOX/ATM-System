@@ -159,6 +159,7 @@ void ShowInvalidOptionScreen(void (*MainMenuFunc)());
 bool IsAmountMultipleOfFiveAndLessThanFifty(int Amount);
 void ValidateAmount(string TransactionType, float &Amount);
 void ValidateAmount(string TransactionType, float &Amount, float QuickWithDrawOptions[8], int Choice);
+void ShowMainMenue();
 ////////////////////////
 
 void WithdrawFromAccount(string TransactionType, float Amount)
@@ -198,15 +199,21 @@ void WithdrawFromAccount(string TransactionType, float Amount)
 
 void QuickWithdraw()
 {
-    float QuickWithDrawOptions[8] = {50, 100, 200, 500, 1000, 2000, 5000, 10000};
 
     int Answer;
     cin >> Answer;
 
-    float Amount = QuickWithDrawOptions[Answer - 1];
+    if (Answer == 9)
+    {
+        return;
+    }
 
     if (Answer >= 1 && Answer <= 8)
     {
+
+        float QuickWithDrawOptions[8] = {50, 100, 200, 500, 1000, 2000, 5000, 10000};
+        float Amount = QuickWithDrawOptions[Answer - 1];
+
         ValidateAmount("Withdrawal", Amount, QuickWithDrawOptions, Answer);
         WithdrawFromAccount("Withdrawal", Amount);
     }
@@ -230,9 +237,10 @@ void ShowQuickWithdrawScreen()
     cout << "        [6] 2000                 \n";
     cout << "        [7] 5000                 \n";
     cout << "        [8] 10000                 \n";
+    cout << "        [9] Exit                 \n";
 
     cout << "\n Your Balance is " << LogedInClient.AccountBalance << endl;
-    cout << "\n How much you like to withdraw? (1-8) \n";
+    cout << "\n How much you like to withdraw? (1-9) \n";
 
     QuickWithdraw();
 }
@@ -241,16 +249,6 @@ bool IsAmountMultipleOfFiveAndLessThanFifty(int Amount)
 {
     return Amount % 5 == 0 && Amount >= 50;
 }
-
-// void ValidateAmount(int &Amount)
-// {
-//     while (!(IsAmountMultipleOfFiveAndLessThanFifty(Amount)))
-//     {
-//         cout << "\nWithdrawal amount must be multiples of 5 and more than 50 !!!" << endl;
-//         cout << "\nHow much you like to withdraw?" << endl;
-//         cin >> Amount;
-//     }
-// }
 
 void ValidateAmount(string TransactionType, float &Amount)
 {
@@ -375,8 +373,7 @@ void AppOptions()
         LogInScreen();
         break;
     default:
-        cout << "Invalid Input!!!" << endl;
-        GoBackToMainMenue();
+        ShowInvalidOptionScreen(ShowMainMenue);
         break;
     }
 }
