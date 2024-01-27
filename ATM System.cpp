@@ -157,7 +157,8 @@ void ShowQuickWithdrawScreen();
 void NormalWithdraw();
 void ShowInvalidOptionScreen(void (*MainMenuFunc)());
 bool IsAmountMultipleOfFiveAndLessThanFifty(int Amount);
-
+void ValidateAmount(string TransactionType, float &Amount);
+void ValidateAmount(string TransactionType, float &Amount, float QuickWithDrawOptions[8], int Choice);
 ////////////////////////
 
 void WithdrawFromAccount(string TransactionType, float Amount)
@@ -176,7 +177,8 @@ void WithdrawFromAccount(string TransactionType, float Amount)
             {
                 CurrentClient.AccountBalance -= Amount;
             }
-            else
+
+            if (TransactionType == "Deposit")
             {
                 CurrentClient.AccountBalance += Amount;
             }
@@ -201,9 +203,12 @@ void QuickWithdraw()
     int Answer;
     cin >> Answer;
 
+    float Amount = QuickWithDrawOptions[Answer - 1];
+
     if (Answer >= 1 && Answer <= 8)
     {
-        WithdrawFromAccount("Withdrawal", (float)QuickWithDrawOptions[Answer - 1]);
+        ValidateAmount("Withdrawal", Amount, QuickWithDrawOptions, Answer);
+        WithdrawFromAccount("Withdrawal", Amount);
     }
     else
     {
@@ -237,7 +242,7 @@ bool IsAmountMultipleOfFiveAndLessThanFifty(int Amount)
     return Amount % 5 == 0 && Amount >= 50;
 }
 
-// void ValidateWithdrawalAmount(int &Amount)
+// void ValidateAmount(int &Amount)
 // {
 //     while (!(IsAmountMultipleOfFiveAndLessThanFifty(Amount)))
 //     {
@@ -247,34 +252,56 @@ bool IsAmountMultipleOfFiveAndLessThanFifty(int Amount)
 //     }
 // }
 
-void ValidateWithdrawalAmount(int &Amount)
+void ValidateAmount(string TransactionType, float &Amount)
 {
 
-    while ((Amount > LogedInClient.AccountBalance || !(IsAmountMultipleOfFiveAndLessThanFifty(Amount))))
+    if (TransactionType == "Withdrawal")
     {
-        if (!(IsAmountMultipleOfFiveAndLessThanFifty(Amount)))
+        while ((Amount > LogedInClient.AccountBalance || !(IsAmountMultipleOfFiveAndLessThanFifty((int)Amount))))
         {
-            cout << "\nWithdrawal amount must be multiples of 5 and more than 50 !!!" << endl;
-            cout << "\nHow much you like to withdraw?" << endl;
-            cin >> Amount;
+            if (!(IsAmountMultipleOfFiveAndLessThanFifty(Amount)))
+            {
+                cout << "\nWithdrawal amount must be multiples of 5 and more than 50 !!!" << endl;
+                cout << "\nHow much you like to withdraw?" << endl;
+                cin >> Amount;
+            }
+            else
+            {
+                cout << "\nThe withdrawal amount exceeds the balance, you can withdraw up to " << LogedInClient.AccountBalance << endl;
+                cout << "\nHow much you like to withdraw?" << endl;
+                cin >> Amount;
+            }
         }
-        else
+    }
+
+    if (TransactionType == "Deposit")
+    {
+        while (Amount <= 0)
         {
-            cout << "\nThe withdrawal amount exceeds the balance, you can withdraw up to " << LogedInClient.AccountBalance << endl;
-            cout << "\nHow much you like to withdraw?" << endl;
+            cout << "\nPlease enter a positive amount:" << endl;
             cin >> Amount;
         }
     }
 }
 
+void ValidateAmount(string TransactionType, float &Amount, float QuickWithDrawOptions[8], int Choice)
+{
+    while (Amount > LogedInClient.AccountBalance)
+    {
+        cout << "\nThe withdrawal amount exceeds the balance, you can withdraw up to " << LogedInClient.AccountBalance << endl;
+        cout << "\nHow much you like to withdraw? (1-8)" << endl;
+        cin >> Choice;
+        Amount = QuickWithDrawOptions[Choice - 1];
+    }
+}
+
 void NormalWithdraw()
 {
-    int Amount;
+    float Amount;
     cin >> Amount;
 
-    ValidateWithdrawalAmount(Amount);
-
-    WithdrawFromAccount("Withdrawal", (float)Amount);
+    ValidateAmount("Withdrawal", Amount);
+    WithdrawFromAccount("Withdrawal", Amount);
 }
 
 void ShowNormalWithdrawScreen()
@@ -288,6 +315,27 @@ void ShowNormalWithdrawScreen()
     cout << "\n How much you like to withdraw? (Enter multiples of 5 and more than 50) \n";
 
     NormalWithdraw();
+}
+
+void Deposit()
+{
+    float Amount;
+    cin >> Amount;
+
+    ValidateAmount("Deposit", Amount);
+    WithdrawFromAccount("Deposit", Amount);
+}
+
+void ShowDepositScreen()
+{
+    system("cls");
+    cout << "===========================================================================\n";
+    cout << "                                 Deposit                                 \n";
+    cout << "===========================================================================\n\n";
+
+    cout << "\n How much you like to deposit?\n";
+
+    Deposit();
 }
 
 void CheckBalance()
@@ -314,7 +362,7 @@ void AppOptions()
         break;
     case '3':
         system("cls");
-        // DeleteCustomer();
+        ShowDepositScreen();
         GoBackToMainMenue();
         break;
     case '4':
