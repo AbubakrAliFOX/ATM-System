@@ -154,51 +154,44 @@ void OverwriteCutomersToFile(vector<Client> vClients)
 void LogInScreen();
 void GoBackToMainMenue();
 void ShowQuickWithdrawScreen();
-
+void NormalWithdraw();
 void ShowInvalidOptionScreen(void (*MainMenuFunc)());
+bool IsAmountMultipleOfFiveAndLessThanFifty(int Amount);
 
 ////////////////////////
 
 void WithdrawFromAccount(string TransactionType, float Amount)
 {
     vector<Client> vAllClients = GetClientsFromFile();
-    
+    Client CurrentClient = LogedInClient;
+
     string Msg;
 
     for (Client &u : vAllClients)
     {
-        if (u.AccountNumber == LogedInClient.AccountNumber)
+        if (u.AccountNumber == CurrentClient.AccountNumber)
         {
-            LogedInClient = u;
+            CurrentClient = u;
             if (TransactionType == "Withdrawal")
             {
-                while (Amount > LogedInClient.AccountBalance)
-                {
-                    cout << "The withdrawal amount exceeds the balance, you can withdraw up to " << LogedInClient.AccountBalance << endl;
-                    Msg = "Please Enter " + TransactionType + " Amount: ";
-                    Amount = ReadFloat(Msg);
-                }
-                LogedInClient.AccountBalance -= Amount;
+                CurrentClient.AccountBalance -= Amount;
             }
             else
             {
-                LogedInClient.AccountBalance += Amount;
+                CurrentClient.AccountBalance += Amount;
             }
 
-            u = LogedInClient;
-            LogedInClient = u;
+            char Answer = ReadChar("Are you sure you want to complete this transaction? (y / n)");
+            if (Answer == 'Y' || Answer == 'y')
+            {
+                u = CurrentClient;
+                OverwriteCutomersToFile(vAllClients);
+                LogedInClient = u; // To make loggedIn client same as in the file.
+                cout << "\n\n New Balance is:" << LogedInClient.AccountBalance << "\n\n";
+            }
             break;
         }
     }
-
-    char Answer = ReadChar("Are you sure you want to complete this transaction? (y / n)");
-
-    if (Answer == 'Y' || Answer == 'y')
-    {
-        OverwriteCutomersToFile(vAllClients);
-    }
-
-    cout << "\n\n New Balance is:" << LogedInClient.AccountBalance << "\n\n";
 }
 
 void QuickWithdraw()
@@ -239,6 +232,64 @@ void ShowQuickWithdrawScreen()
     QuickWithdraw();
 }
 
+bool IsAmountMultipleOfFiveAndLessThanFifty(int Amount)
+{
+    return Amount % 5 == 0 && Amount >= 50;
+}
+
+// void ValidateWithdrawalAmount(int &Amount)
+// {
+//     while (!(IsAmountMultipleOfFiveAndLessThanFifty(Amount)))
+//     {
+//         cout << "\nWithdrawal amount must be multiples of 5 and more than 50 !!!" << endl;
+//         cout << "\nHow much you like to withdraw?" << endl;
+//         cin >> Amount;
+//     }
+// }
+
+void ValidateWithdrawalAmount(int &Amount)
+{
+
+    while ((Amount > LogedInClient.AccountBalance || !(IsAmountMultipleOfFiveAndLessThanFifty(Amount))))
+    {
+        if (!(IsAmountMultipleOfFiveAndLessThanFifty(Amount)))
+        {
+            cout << "\nWithdrawal amount must be multiples of 5 and more than 50 !!!" << endl;
+            cout << "\nHow much you like to withdraw?" << endl;
+            cin >> Amount;
+        }
+        else
+        {
+            cout << "\nThe withdrawal amount exceeds the balance, you can withdraw up to " << LogedInClient.AccountBalance << endl;
+            cout << "\nHow much you like to withdraw?" << endl;
+            cin >> Amount;
+        }
+    }
+}
+
+void NormalWithdraw()
+{
+    int Amount;
+    cin >> Amount;
+
+    ValidateWithdrawalAmount(Amount);
+
+    WithdrawFromAccount("Withdrawal", (float)Amount);
+}
+
+void ShowNormalWithdrawScreen()
+{
+    system("cls");
+    cout << "===========================================================================\n";
+    cout << "                                 Normal Withdraw                                 \n";
+    cout << "===========================================================================\n\n";
+
+    cout << "\n Your Balance is " << LogedInClient.AccountBalance << endl;
+    cout << "\n How much you like to withdraw? (Enter multiples of 5 and more than 50) \n";
+
+    NormalWithdraw();
+}
+
 void CheckBalance()
 {
     cout << "\n\nYour total balance is " << LogedInClient.AccountBalance << endl;
@@ -258,7 +309,7 @@ void AppOptions()
         break;
     case '2':
         system("cls");
-        // CreateCustomers();
+        ShowNormalWithdrawScreen();
         GoBackToMainMenue();
         break;
     case '3':
